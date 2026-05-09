@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       }
 
       await resend.emails.send({
-        from: 'Elite Trader <noreply@fx.theelitetrader.in>',
+        from: 'Elite Trader <onboarding@resend.dev>',
         to: TO_EMAIL,
         subject: `📩 New Query from ${name}`,
         html: `
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
       }
 
       await resend.emails.send({
-        from: 'Elite Trader <noreply@fx.theelitetrader.in>',
+        from: 'Elite Trader <onboarding@resend.dev>',
         to: TO_EMAIL,
         subject: `🚀 New Join Application from ${name}`,
         html: `
