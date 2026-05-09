@@ -5,14 +5,28 @@ import { useState } from 'react';
 const Contact = () => {
   const [query, setQuery] = useState({ name: '', message: '' });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would use an API or mailto
-    const mailtoUrl = `mailto:theelitetraderx@gmail.com?subject=Query from ${query.name}&body=${query.message}`;
-    window.location.href = mailtoUrl;
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'contact', ...query }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSent(true);
+      setQuery({ name: '', message: '' });
+      setTimeout(() => setSent(false), 4000);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -90,11 +104,13 @@ const Contact = () => {
                   onChange={(e) => setQuery({ ...query, message: e.target.value })}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-metallic/50 transition-colors resize-none"
                 />
+                {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
                 <button 
                   type="submit"
-                  className="btn-primary w-full flex items-center justify-center gap-3"
+                  disabled={loading}
+                  className="btn-primary w-full flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {sent ? 'SENT SUCCESSFULLY' : 'SEND QUERY'} <Send size={18} />
+                  {loading ? 'SENDING...' : sent ? '✓ SENT SUCCESSFULLY' : 'SEND QUERY'} {!loading && <Send size={18} />}
                 </button>
               </form>
             </motion.div>

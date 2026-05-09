@@ -10,22 +10,35 @@ const JoinModal = ({ isOpen, onClose }) => {
     age: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (parseInt(formData.age) < 18) {
       setError('You must be 18 or older to join.');
       return;
     }
     setError('');
-    setSubmitted(true);
-    // In a real app, you'd send this data to a backend here.
-    setTimeout(() => {
-      onClose();
-      setSubmitted(false);
-      setFormData({ name: '', email: '', phone: '', age: '' });
-    }, 2000);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'join', ...formData }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+        setSubmitted(false);
+        setFormData({ name: '', email: '', phone: '', age: '' });
+      }, 2500);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -124,13 +137,14 @@ const JoinModal = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+                  {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
 
                   <button
                     type="submit"
-                    className="btn-primary w-full mt-6 !py-4 shadow-xl"
+                    disabled={loading}
+                    className="btn-primary w-full mt-6 !py-4 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    SUBMIT APPLICATION
+                    {loading ? 'SUBMITTING...' : 'SUBMIT APPLICATION'}
                   </button>
                 </form>
               </div>
